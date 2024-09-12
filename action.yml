@@ -1,8 +1,8 @@
 name: "Wails Build Action"
 description: "Creates a wails binary"
 branding:
-  icon: 'box'
-  color: 'purple'
+  icon: "box"
+  color: "purple"
 inputs:
   build:
     description: "Platform to build for"
@@ -66,39 +66,39 @@ inputs:
   sign-macos-app-id:
     description: "MacOS Application Certificate id"
     required: false
-    default: ''
+    default: ""
   sign-macos-apple-password:
     description: "MacOS Apple password"
     required: false
-    default: ''
+    default: ""
   sign-macos-app-cert:
     description: "MacOS Application Certificate"
     required: false
-    default: ''
+    default: ""
   sign-macos-app-cert-password:
     description: "MacOS Application Certificate Password"
     required: false
-    default: ''
+    default: ""
   sign-macos-installer-id:
     description: "MacOS Installer Certificate id"
     required: false
-    default: ''
+    default: ""
   sign-macos-installer-cert:
     description: "MacOS Installer Certificate"
     required: false
-    default: ''
+    default: ""
   sign-macos-installer-cert-password:
     description: "MacOS Installer Certificate Password"
     required: false
-    default: ''
+    default: ""
   sign-windows-cert:
     description: "Windows Signing Certificate"
     required: false
-    default: ''
+    default: ""
   sign-windows-cert-password:
     description: "Windows Signing Certificate Password"
     required: false
-    default: ''
+    default: ""
 
 runs:
   using: "composite"
@@ -138,7 +138,9 @@ runs:
       shell: bash
     - name: Install macOS Wails deps
       if: runner.os == 'macOS'
-      run: brew install mitchellh/gon/gon
+      run: |
+        brew install mitchellh/gon/gon
+        npm install --global create-dmg
       shell: bash
     # Building step
     - name: Build App
@@ -206,14 +208,14 @@ runs:
       if: runner.os == 'macOS' && inputs.sign != 'false' && inputs.sign-macos-installer-id != '' && startsWith(github.ref, 'refs/tags/')
       shell: bash
       working-directory: ${{ inputs.app-working-directory }}
-      run: |
+      run: | # TODO this will need updated to use the 'create-dmg' tool
         productbuild --sign '${{inputs.sign-macos-installer-id}}' --component ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.app ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.pkg
     - name: Building Installer
       if: runner.os == 'macOS' && inputs.sign-macos-installer-id == '' && startsWith(github.ref, 'refs/tags/')
       shell: bash
       working-directory: ${{ inputs.app-working-directory }}
       run: |
-        productbuild --component ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.app ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.pkg
+        create-dmg --codesign "-null-" ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.dmg ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.app
     - name: Notarising Installer and zip
       if: runner.os == 'macOS' && inputs.sign != 'false' && startsWith(github.ref, 'refs/tags/')
       shell: bash
