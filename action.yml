@@ -140,7 +140,7 @@ runs:
       if: runner.os == 'macOS'
       run: |
         brew install mitchellh/gon/gon
-        npm install --global create-dmg
+        brew install create-dmg
       shell: bash
     # Building step
     - name: Build App
@@ -215,7 +215,12 @@ runs:
       shell: bash
       working-directory: ${{ inputs.app-working-directory }}
       run: |
-        create-dmg --codesign "-null-" ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.dmg ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.app
+        create-dmg --codesign "-null-" \
+        --window-pos 200 120 \
+        --window-size 800 400 \
+        --icon-size 100 \
+        --app-drop-link 500 0 \
+        ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.dmg ${{ inputs.app-working-directory }}/build/bin/${{inputs.build-name}}.app
     - name: Notarising Installer and zip
       if: runner.os == 'macOS' && inputs.sign != 'false' && startsWith(github.ref, 'refs/tags/')
       shell: bash
